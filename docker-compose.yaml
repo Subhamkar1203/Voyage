@@ -1,0 +1,76 @@
+# ═══════════════════════════════════════════════════════════
+#  Voyage Analytics — Docker Compose
+# ═══════════════════════════════════════════════════════════
+version: "3.9"
+
+services:
+  # ── MLflow Tracking Server ──
+  mlflow:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.mlflow
+    container_name: voyage-mlflow
+    ports:
+      - "5001:5001"
+    volumes:
+      - mlflow-data:/mlflow
+    networks:
+      - voyage-net
+
+  # ── Training (run once) ──
+  training:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.training
+    container_name: voyage-training
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5001
+    volumes:
+      - model-data:/app/outputs
+      - ./data/raw:/app/data/raw:ro
+    depends_on:
+      - mlflow
+    networks:
+      - voyage-net
+
+  # ── Flask REST API ──
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: voyage-api
+    ports:
+      - "5000:5000"
+    volumes:
+      - model-data:/app/outputs:ro
+      - ./data/raw:/app/data/raw:ro
+    depends_on:
+      - training
+    networks:
+      - voyage-net
+    restart: unless-stopped
+
+  # ── Streamlit Dashboard ──
+  streamlit:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.streamlit
+    container_name: voyage-streamlit
+    ports:
+      - "8501:8501"
+    volumes:
+      - model-data:/app/outputs:ro
+      - ./data/raw:/app/data/raw:ro
+    depends_on:
+      - api
+    networks:
+      - voyage-net
+    restart: unless-stopped
+
+volumes:
+  mlflow-data:
+  model-data:
+
+networks:
+  voyage-net:
+    driver: bridge

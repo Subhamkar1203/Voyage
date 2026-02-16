@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voyage-mlflow
+  namespace: voyage-analytics
+  labels:
+    app: voyage-mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: voyage-mlflow
+  template:
+    metadata:
+      labels:
+        app: voyage-mlflow
+    spec:
+      containers:
+        - name: mlflow
+          image: voyage-analytics/mlflow:latest
+          ports:
+            - containerPort: 5001
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: mlflow-storage
+              mountPath: /mlflow
+      volumes:
+        - name: mlflow-storage
+          persistentVolumeClaim:
+            claimName: mlflow-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: voyage-mlflow-service
+  namespace: voyage-analytics
+spec:
+  selector:
+    app: voyage-mlflow
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mlflow-pvc
+  namespace: voyage-analytics
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

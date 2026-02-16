@@ -1,0 +1,56 @@
+# ═══════════════════════════════════════════════
+# Voyage Analytics — Model Configuration
+# ═══════════════════════════════════════════════
+
+data:
+  source: "data/raw/flights.csv"
+  target_regression: "price"
+  target_classification: "flightType"
+  test_size: 0.2
+  random_state: 42
+
+regression:
+  models:
+    - LinearRegression
+    - Ridge
+    - Lasso
+    - ElasticNet
+    - DecisionTreeRegressor
+    - RandomForestRegressor
+    - GradientBoostingRegressor
+    - XGBRegressor
+    - LGBMRegressor
+  tuning:
+    model: XGBRegressor
+    cv: 5
+    param_grid:
+      n_estimators: [100, 200, 300]
+      max_depth: [3, 5, 7]
+      learning_rate: [0.01, 0.05, 0.1]
+
+classification:
+  models:
+    - LogisticRegression
+    - KNeighborsClassifier
+    - DecisionTreeClassifier
+    - RandomForestClassifier
+    - GradientBoostingClassifier
+    - XGBClassifier
+    - LGBMClassifier
+
+recommendation:
+  collaborative_weight: 0.6
+  content_weight: 0.4
+  knn_neighbors: 10
+  top_n: 5
+
+mlflow:
+  tracking_uri: "sqlite:///mlruns.db"
+  experiments:
+    regression: "flight_price_regression"
+    classification: "flight_class_classification"
+    recommendation: "route_recommendation"
+
+output:
+  model_dir: "outputs/models"
+  report_dir: "outputs/reports"
