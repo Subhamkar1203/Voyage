@@ -174,5 +174,3 @@ pytest tests/ -v
 - **Orchestration:** Kubernetes (HPA, Ingress)
 - **Data:** pandas, numpy, scipy
 =======
-# Voyage
->>>>>>> 0d192561bfeae0f7aca9f3b6341877980e2b1cc6
